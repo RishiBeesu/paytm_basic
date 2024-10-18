@@ -4,6 +4,8 @@ const { User } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
 const { signinSchema } = require("../zod/signin");
+const { updateUserSchema } = require("../zod/updateUser");
+const { authMiddleware } = require("../middleware");
 
 const router = express.Router();
 
@@ -60,6 +62,49 @@ router.post("/signin", async (req, res) => {
       message: "Error while logging in",
     });
   }
+});
+
+router.put("/", authMiddleware, async (req, res) => {
+  const payload = req.body;
+  const { success } = updateUserSchema.safeParse(payload);
+  if (!success) {
+    return res.status(411).json({
+      message: "Invalid Inputs",
+    });
+  }
+  const user = await User.updateOne({ _id: req.userId }, payload);
+  res.status(200).json({
+    message: "Updated successfully",
+  });
+});
+
+router.get("/bulk", async (req, res) => {
+  const filter = req.query.filter;
+  const users = await User.find({
+    $or: [
+      {
+        firstName: {
+          $regex: filter,
+        },
+      },
+      {
+        lastName: {
+          $regex: filter,
+        },
+      },
+    ],
+  });
+  const usersNoPass = users.map((user) => {
+    return {
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      _id: user._id,
+    };
+  });
+  res.status(200).json({
+    users: usersNoPass,
+  });
 });
 
 module.exports = router;
