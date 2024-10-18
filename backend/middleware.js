@@ -1,7 +1,7 @@
-import { JWT_SECRET } from "./config";
+const { JWT_SECRET } = require("./config");
 const jwt = require("jsonwebtoken");
 
-export function authMiddleware(req, res, next) {
+const authMiddleware = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization || !authorization.startsWith("Bearer ")) {
     return res.status(403).json({
@@ -18,4 +18,8 @@ export function authMiddleware(req, res, next) {
       message: "Forbidden",
     });
   }
-}
+};
+
+module.exports = {
+  authMiddleware,
+};
