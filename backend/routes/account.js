@@ -15,7 +15,7 @@ router.get("/balance", authMiddleware, async (req, res) => {
   });
 });
 
-router.post("/transfer", async (req, res) => {
+router.post("/transfer", authMiddleware, async (req, res) => {
   const payload = req.body;
   const { success } = accountTransferSchema.safeParse(payload);
   if (!success) {
